@@ -3,10 +3,12 @@ int clockPin = 6;
 int dataPin = 4;
 
 String cmd;
+char colorList[] = {'R', 'G', 'B'};
+int numLeds = 2;
+byte leds = 0;
+byte rgb[] = {B10000000, B01000000, B00100000, B00010000,             
+              B00001000, B00000100, B00000010, B00000001};
 
-byte leds = B00000000;
-byte rgb[] = {B10000000, B01000000, B00100000, B00010000, 
-              B00001000, B00000100, B00000010, B00000001}; 
 boolean ledState[] = {false, false, false, false, 
                       false, false, false, false};
 /*
@@ -39,34 +41,20 @@ void loop(){
   }
 
   if(cmd.length() > 0){
-    if(cmd[0] == '1'){
-      if(cmd[1] == 'R')
-        if(cmd[2] == '1')      ledState[0] = true;
-        else if(cmd[2] == 'T') ledState[0] = !ledState[0];
-        else                   ledState[0] = false;
-      if(cmd[1] == 'G')
-        if(cmd[2] == '1')      ledState[1] = true;
-        else if(cmd[2] == 'T') ledState[1] = !ledState[1];
-        else                   ledState[1] = false;
-      if(cmd[1] == 'B')
-        if(cmd[2] == '1')      ledState[2] = true;
-        else if(cmd[2] == 'T') ledState[2] = !ledState[2];
-        else                   ledState[2] = false;
-      
-    }else if(cmd[0] == '2'){
-      if(cmd[1] == 'R')
-        if(cmd[2] == '1')      ledState[3] = true;
-        else if(cmd[2] == 'T') ledState[3] = !ledState[3];
-        else                   ledState[3] = false;
-      if(cmd[1] == 'G')
-        if(cmd[2] == '1')      ledState[4] = true;
-        else if(cmd[2] == 'T') ledState[4] = !ledState[4];
-        else                   ledState[4] = false;
-      if(cmd[1] == 'B')
-        if(cmd[2] == '1')      ledState[5] = true;
-        else if(cmd[2] == 'T') ledState[5] = !ledState[5];
-        else                   ledState[5] = false;
-    } 
+    for(int i=1; i<=numLeds; i++){
+      int stateI = i*3;
+      if(cmd[0]-'0' == i){
+        for(int j=0; j<sizeof(colorList); j++){
+          int stateJ = j-3;
+          int stateIJ = stateI + stateJ;
+          if(cmd[1] == colorList[j]){
+            if(cmd[2] == '1')      ledState[stateIJ] = true;
+            else if(cmd[2] == 'T') ledState[stateIJ] = !ledState[stateIJ];
+            else                   ledState[stateIJ] = false;
+          }
+        } //END for(j)
+      }
+    } //END for(i)
     cmd="";
     setLeds();
   } 
