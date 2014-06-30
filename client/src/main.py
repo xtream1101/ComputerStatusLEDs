@@ -8,8 +8,11 @@ import os
 import time
 import serial
 from serial.tools import list_ports
+import subprocess
+import atexit
 
 from ledController import LedController
+from kthread import *
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
@@ -34,6 +37,7 @@ def ListSerialPorts():
             yield port[0]
             
 
+
 class myCheckBox(QCheckBox):
     """
     Stores the checkbox objects for use when toggled
@@ -41,14 +45,30 @@ class myCheckBox(QCheckBox):
     def data(self, port, led):
         self.port = port
         self.led = led
-      
+        self.key = self.port+''+str(self.led)
+        
+    def runCommand(self):
+        while True:
+            #get output from the command
+            output = subprocess.check_output(str(self.command))
+            #build command to send to the controller
+            cmd = str(self.led) + '' + output
+            ctrl[self.port].sendCommand(cmd)
+            time.sleep(self.min)
+            
     @pyqtSlot(int)
     def checkedSlot(self,state):
-        self.command = txtCommand[self.port][self.led-1].text()
-        self.min = sbMin[self.port][self.led-1].value()
-
-        cmd = str(self.led)+''+self.command
-        ctrl[self.port].sendCommand(cmd)
+        if state != 2:
+            #if checkbox gets unchecked, kill the thread.
+            cmdThread[self.key].kill()
+            del(cmdThread[self.key])
+        else:
+            self.command = txtCommand[self.port][self.led-1].text()
+            self.min = sbMin[self.port][self.led-1].value()
+            #start thread         
+            cmdThread[self.key] = KThread(target=self.runCommand);
+            cmdThread[self.key].start()
+        
 
             
 class Window(QWidget):
@@ -142,30 +162,35 @@ def listControllers():
         if feedback[:2] != 'XN':
             del device[port]
     return device         
-        
-        
+
+
+def killThreads():
+    """
+    Kills any running scripts on exit
+    """
+    for key in cmdThread:
+        cmdThread[key].kill()
+            
+def quitApp():
+    killThreads()
+    print "exit"
+       
 def main():
+    global ctrl, cmdThread
+    
+    #dict to stroe running threads
+    cmdThread = {}
+    #dict to store active controllers in
+    ctrl = listControllers()   
     
     app = QApplication(sys.argv)
     win = Window()
-    sys.exit(app.exec_())
-
+    exitApp = app.exec_()
+    #run this code on app exit
+    quitApp()
+    sys.exit(exitApp)
 
 if __name__ == '__main__':
-    global ctrl
-    #dict to store active controllers in
-    ctrl = listControllers()    
-    #for testing only
-    ctrl['COM555'] = LedController()
-    ctrl['COM555'].model = 'XN-LED4-xxxx'
-    ctrl['COM555'].ledCount = 4
-    ctrl['COM555'].port = 'COM555'
-    ctrl['COM555'].isConn = True
-    ctrl['COM666'] = LedController()
-    ctrl['COM666'].model = 'XN-LED3-yyyy'
-    ctrl['COM666'].ledCount = 3
-    ctrl['COM666'].port = 'COM666'
-    ctrl['COM666'].isConn = True
     main()
     
     
