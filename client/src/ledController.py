@@ -50,7 +50,7 @@ class LedController(object):
          
 
     def sendCommand(self, val):
-        self.conn.write(val)
+        self.conn.write(str(val))
 
     def checkConn(self):
         return self.isConn

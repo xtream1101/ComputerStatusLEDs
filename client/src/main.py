@@ -44,15 +44,17 @@ class myCheckBox(QCheckBox):
       
     @pyqtSlot(int)
     def checkedSlot(self,state):
-        print txtCommand[self.port][self.led-1].text()
-        print self.port + " " + str(self.led) + " " + str(state)
+        self.command = txtCommand[self.port][self.led-1].text()
+        self.min = sbMin[self.port][self.led-1].value()
+
+        cmd = str(self.led)+''+self.command
+        ctrl[self.port].sendCommand(cmd)
 
             
 class Window(QWidget):
     
     def __init__(self):
         super(Window, self).__init__()
-        
         self.initUI()
         
     def initUI(self):
@@ -65,7 +67,7 @@ class Window(QWidget):
         self.show()
         
     def createTabs(self):
-        global txtCommand, sbInt
+        global txtCommand, sbMin
         
         tabs = QTabWidget()
         #Create a tab for each controller
@@ -78,12 +80,12 @@ class Window(QWidget):
         #Create a trigger list for each controller (tab)
         cbEnable = {}
         txtCommand = {}
-        sbInt = {}
+        sbMin = {}
         for tabIdx in xrange(len(tabList)):
             key = str(tabs.tabToolTip(tabIdx))
             cbEnable[key] = []
             txtCommand[key] = []
-            sbInt[key] = []
+            sbMin[key] = []
             tabGrid = QGridLayout()
             gbTriggers = QGroupBox("Triggers")
             #Create a trigger
@@ -99,17 +101,17 @@ class Window(QWidget):
                 lblCommand = QLabel("LED "+str(triggerIdx+1)+" Command:")
                 txtCommand[key].append(QLineEdit())
                 lblInt = QLabel("Interval: ")
-                sbInt[key].append(QSpinBox())
-                sbInt[key][triggerIdx].setMaximum(60)
-                sbInt[key][triggerIdx].setMinimum(1)
-                lblIntMin = QLabel("min")
+                sbMin[key].append(QSpinBox())
+                sbMin[key][triggerIdx].setMaximum(60)
+                sbMin[key][triggerIdx].setMinimum(1)
+                lblMin = QLabel("min")
 
                 triggerGrid.addWidget(cbEnable[key][triggerIdx], 0, 0)
                 triggerGrid.addWidget(lblCommand, 0, 1, Qt.AlignRight)
                 triggerGrid.addWidget(txtCommand[key][triggerIdx], 0, 2, 1, 2)
                 triggerGrid.addWidget(lblInt, 1, 1, Qt.AlignRight)
-                triggerGrid.addWidget(sbInt[key][triggerIdx], 1, 2)
-                triggerGrid.addWidget(lblIntMin, 1, 3)
+                triggerGrid.addWidget(sbMin[key][triggerIdx], 1, 2)
+                triggerGrid.addWidget(lblMin, 1, 3)
                 triggerGrid.setColumnStretch(3,4)
                 
                 tabGrid.addLayout(triggerGrid, triggerIdx, 0)
@@ -150,17 +152,17 @@ def main():
 
 
 if __name__ == '__main__':
-    
+    global ctrl
     #dict to store active controllers in
     ctrl = listControllers()    
     #for testing only
     ctrl['COM555'] = LedController()
-    ctrl['COM555'].model = 'XN-LED4-rj5d'
+    ctrl['COM555'].model = 'XN-LED4-xxxx'
     ctrl['COM555'].ledCount = 4
     ctrl['COM555'].port = 'COM555'
     ctrl['COM555'].isConn = True
     ctrl['COM666'] = LedController()
-    ctrl['COM666'].model = 'XN-LED3-js6e'
+    ctrl['COM666'].model = 'XN-LED3-yyyy'
     ctrl['COM666'].ledCount = 3
     ctrl['COM666'].port = 'COM666'
     ctrl['COM666'].isConn = True
