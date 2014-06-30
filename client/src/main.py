@@ -11,7 +11,9 @@ from serial.tools import list_ports
 
 from ledController import LedController
 
-from PyQt4 import QtGui, QtCore
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
+
 
 def ListSerialPorts():
     """
@@ -31,8 +33,22 @@ def ListSerialPorts():
         for port in list_ports.comports():
             yield port[0]
             
+
+class myCheckBox(QCheckBox):
+    """
+    Stores the checkbox objects for use when toggled
+    """
+    def data(self, port, led):
+        self.port = port
+        self.led = led
+      
+    @pyqtSlot(int)
+    def checkedSlot(self,state):
+        print txtCommand[self.port][self.led-1].text()
+        print self.port + " " + str(self.led) + " " + str(state)
+
             
-class Window(QtGui.QWidget):
+class Window(QWidget):
     
     def __init__(self):
         super(Window, self).__init__()
@@ -40,9 +56,7 @@ class Window(QtGui.QWidget):
         self.initUI()
         
     def initUI(self):
-        
-
-        mainVBox = QtGui.QVBoxLayout()
+        mainVBox = QVBoxLayout()
         mainVBox.addWidget(self.createTabs())
           
         self.setLayout(mainVBox)
@@ -51,11 +65,13 @@ class Window(QtGui.QWidget):
         self.show()
         
     def createTabs(self):
-        tabs = QtGui.QTabWidget()
+        global txtCommand, sbInt
+        
+        tabs = QTabWidget()
         #Create a tab for each controller
         tabList = []
         for key in ctrl.keys():
-            tabList.append( QtGui.QWidget() )
+            tabList.append( QWidget() )
             tabs.addTab(tabList[-1], ctrl[key].getModel())
             tabs.setTabToolTip(len(tabList)-1, ctrl[key].getPort())
             
@@ -68,25 +84,30 @@ class Window(QtGui.QWidget):
             cbEnable[key] = []
             txtCommand[key] = []
             sbInt[key] = []
-            tabGrid = QtGui.QGridLayout()
-            gbTriggers = QtGui.QGroupBox("Triggers")
+            tabGrid = QGridLayout()
+            gbTriggers = QGroupBox("Triggers")
             #Create a trigger
             for triggerIdx in xrange(ctrl[key].getLedCount()):
-                triggerGrid = QtGui.QGridLayout()
+                triggerGrid = QGridLayout()
                 
-                cbEnable[key].append(QtGui.QCheckBox(""))
-                lblCommand = QtGui.QLabel("LED "+str(triggerIdx+1)+" Command:")
-                txtCommand[key].append(QtGui.QLineEdit())
-                lblInt = QtGui.QLabel("Interval: ")
-                sbInt[key].append(QtGui.QSpinBox())
-                sbInt[key][-1].setMaximum(60)
-                sbInt[key][-1].setMinimum(1)
-                lblIntMin = QtGui.QLabel("min")
+                cbEnable[key].append(myCheckBox())
+                #Save the port and led number to know which checkbox was clicked
+                cbEnable[key][triggerIdx].data(key, triggerIdx+1)
+                #Create an action for the checkbox
+                self.connect(cbEnable[key][triggerIdx],SIGNAL("stateChanged(int)"),cbEnable[key][triggerIdx],SLOT("checkedSlot(int)"))
                 
+                lblCommand = QLabel("LED "+str(triggerIdx+1)+" Command:")
+                txtCommand[key].append(QLineEdit())
+                lblInt = QLabel("Interval: ")
+                sbInt[key].append(QSpinBox())
+                sbInt[key][triggerIdx].setMaximum(60)
+                sbInt[key][triggerIdx].setMinimum(1)
+                lblIntMin = QLabel("min")
+
                 triggerGrid.addWidget(cbEnable[key][triggerIdx], 0, 0)
-                triggerGrid.addWidget(lblCommand, 0, 1, QtCore.Qt.AlignRight)
+                triggerGrid.addWidget(lblCommand, 0, 1, Qt.AlignRight)
                 triggerGrid.addWidget(txtCommand[key][triggerIdx], 0, 2, 1, 2)
-                triggerGrid.addWidget(lblInt, 1, 1, QtCore.Qt.AlignRight)
+                triggerGrid.addWidget(lblInt, 1, 1, Qt.AlignRight)
                 triggerGrid.addWidget(sbInt[key][triggerIdx], 1, 2)
                 triggerGrid.addWidget(lblIntMin, 1, 3)
                 triggerGrid.setColumnStretch(3,4)
@@ -94,17 +115,18 @@ class Window(QtGui.QWidget):
                 tabGrid.addLayout(triggerGrid, triggerIdx, 0)
                 
             #create blank row at bottom to stretch    
-            tabGrid.addWidget(QtGui.QLabel(""), triggerIdx+1, 0,)
+            tabGrid.addWidget(QLabel(""), triggerIdx+1, 0,)
             tabGrid.setColumnStretch(triggerIdx+1, 4) 
             #add trigger list to a GroupBox
             gbTriggers.setLayout(tabGrid)
             #add the groupbox to the tab
-            tabVBox = QtGui.QVBoxLayout()
+            tabVBox = QVBoxLayout()
             tabVBox.addWidget(gbTriggers)
             tabList[tabIdx].setLayout(tabVBox)
             
         return tabs
-
+    
+    
 def listControllers():
     """
     Returns a dict of all LED Controllers pluged in
@@ -122,9 +144,10 @@ def listControllers():
         
 def main():
     
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     win = Window()
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     
