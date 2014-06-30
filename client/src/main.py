@@ -9,7 +9,7 @@ import time
 import serial
 from serial.tools import list_ports
 import subprocess
-import atexit
+import json
 
 from ledController import LedController
 from kthread import *
@@ -42,18 +42,18 @@ class myCheckBox(QCheckBox):
     """
     Stores the checkbox objects for use when toggled
     """
-    def data(self, port, led):
-        self.port = port
+    def data(self, model, led):
+        self.model = model
         self.led = led
-        self.key = self.port+''+str(self.led)
+        self.key = self.model+''+str(self.led)
         
     def runCommand(self):
         while True:
             #get output from the command
-            output = subprocess.check_output(str(self.command))
+            output = subprocess.check_output(self.command)
             #build command to send to the controller
             cmd = str(self.led) + '' + output
-            ctrl[self.port].sendCommand(cmd)
+            ctrl[self.model].sendCommand(cmd)
             time.sleep(self.min)
             
     @pyqtSlot(int)
@@ -63,8 +63,8 @@ class myCheckBox(QCheckBox):
             cmdThread[self.key].kill()
             del(cmdThread[self.key])
         else:
-            self.command = txtCommand[self.port][self.led-1].text()
-            self.min = sbMin[self.port][self.led-1].value()
+            self.command = str(txtCommand[self.model][self.led-1].text())
+            self.min = int(sbMin[self.model][self.led-1].value())
             #start thread         
             cmdThread[self.key] = KThread(target=self.runCommand);
             cmdThread[self.key].start()
@@ -80,14 +80,16 @@ class Window(QWidget):
     def initUI(self):
         mainVBox = QVBoxLayout()
         mainVBox.addWidget(self.createTabs())
-          
+        
+        #Load json data into fields
+        loadData()
         self.setLayout(mainVBox)
         self.setGeometry(300, 300, 300, 150)
         self.setWindowTitle('LED Controller')    
         self.show()
         
     def createTabs(self):
-        global txtCommand, sbMin
+        global cbEnable, txtCommand, sbMin
         
         tabs = QTabWidget()
         #Create a tab for each controller
@@ -102,7 +104,7 @@ class Window(QWidget):
         txtCommand = {}
         sbMin = {}
         for tabIdx in xrange(len(tabList)):
-            key = str(tabs.tabToolTip(tabIdx))
+            key = str(tabs.tabText(tabIdx))
             cbEnable[key] = []
             txtCommand[key] = []
             sbMin[key] = []
@@ -154,15 +156,18 @@ def listControllers():
     Returns a dict of all LED Controllers pluged in
     """
     device = {}
+    deviceTemp = {}
     #Get list of serial ports and find any LED Controllers
     for port in ListSerialPorts():
-        device[port] = LedController()
-        feedback = device[port].connect(port)
+        deviceTemp[port] = LedController()
+        feedback = deviceTemp[port].connect(port)
         #if it is not a controller remove it from the list
-        if feedback[:2] != 'XN':
-            del device[port]
+        if feedback[:2] == 'XN':
+            device[feedback] = deviceTemp[port]
+        
+        del deviceTemp[port]
+        
     return device         
-
 
 def killThreads():
     """
@@ -170,17 +175,53 @@ def killThreads():
     """
     for key in cmdThread:
         cmdThread[key].kill()
-            
+
+def closeConnections():
+    for key in ctrl:
+        ctrl[key].close()
+
+def saveSettings():
+    jsonData = {}
+    for model in ctrl:
+        ledCount = ctrl[model].getLedCount()
+        ledList = {}
+        for idx in xrange(ledCount):
+            cmd = str(txtCommand[model][idx-1].text())
+            delay = int(sbMin[model][idx-1].value())
+            ledList[idx] = {'cmd':cmd,'delay':delay}
+        jsonData[model] = ledList
+        #write each model to its own config file
+        with open('configs/'+model+'.json', 'w') as outfile:
+            json.dump(jsonData[model], outfile, sort_keys = True, indent = 4, ensure_ascii=False)
+        
+
+def loadData():
+    for model in ctrl:
+        jsonData = {}
+        try:
+            f = open('configs/'+model+'.json', 'r')
+            jsonData = json.load(f)
+            f.close()
+            ledCount = ctrl[model].getLedCount()
+            for idx in xrange(ledCount):
+                txtCommand[model][idx-1].setText(jsonData[str(idx)]['cmd'])
+                sbMin[model][idx-1].setValue(jsonData[str(idx)]['delay'])
+        except IOError as e:
+            pass
+
+           
 def quitApp():
+    saveSettings()
     killThreads()
-    print "exit"
+    #closeConnections()
+    
        
 def main():
     global ctrl, cmdThread
     
     #dict to stroe running threads
     cmdThread = {}
-    #dict to store active controllers in
+    #dict to store active controllers
     ctrl = listControllers()   
     
     app = QApplication(sys.argv)
