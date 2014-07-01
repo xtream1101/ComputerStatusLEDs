@@ -3449,20 +3449,20 @@ Pogo pins- HW-11044</description>
 <part name="D5" library="SparkFun-LED" deviceset="LED-RGB-CC-THRU" device="DIFFUSE"/>
 <part name="GND10" library="SparkFun" deviceset="GND" device=""/>
 <part name="R2" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R5" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R6" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R7" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R8" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R9" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R10" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R11" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R12" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R13" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R14" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R15" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R16" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R17" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
-<part name="R18" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES" value="220"/>
+<part name="R5" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R6" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R7" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R8" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R9" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R10" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R11" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R12" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R13" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R14" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R15" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R16" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R17" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
+<part name="R18" library="SparkFun-Resistors" deviceset="RESISTOR" device="0805-RES"/>
 </parts>
 <sheets>
 <sheet>
