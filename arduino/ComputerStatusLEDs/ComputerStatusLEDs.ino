@@ -1,36 +1,33 @@
+
+char* MODEL = "XN-LED4-5C9F";
+int numLeds = 4;
+//How many of the shift registers - change this
+#define numShifts 2
+
+///////////////////
+//  DO NOT EDIT  //
+///////////////////
 int latchPin = 5;
 int clockPin = 6;
 int dataPin = 4;
 
-char* MODEL = "XN-LED2-5C95";
+#define numShiftsPins numShifts * 8
 
+boolean registers[numShiftsPins];
 String cmd;
 char colorList[] = {'R', 'G', 'B'};
-int numLeds = 2;
-byte leds = 0;
-byte rgb[] = {B10000000, B01000000, B00100000, B00010000,             
-              B00001000, B00000100, B00000010, B00000001};
-
-boolean ledState[] = {false, false, false, false, 
-                      false, false, false, false};
-/*
-  0 - 1R
-  1 - 1G
-  2 - 1B 
-  3 - 2R
-  4 - 2G
-  5 - 2B
-  6 - N/A
-  7 - N/A
-*/
-
+int ledState[numShiftsPins];
 
 void setup(){
   pinMode(latchPin, OUTPUT);
   pinMode(dataPin, OUTPUT);  
   pinMode(clockPin, OUTPUT);
   Serial.begin(9600);
-  setLeds();
+  //Set all leds to off/0
+  for(int i=0;i<=sizeof(ledState);i++){
+    ledState[i] = 0; 
+  }
+  updateShiftRegister();
 } //END setup()
  
 void loop(){
@@ -52,31 +49,27 @@ void loop(){
           for(int j=0; j<sizeof(colorList); j++){
             int stateJ = j-3;
             int stateIJ = stateI + stateJ;
-            if(cmd[1] == colorList[j]){
-              if(cmd[2] == '1')      ledState[stateIJ] = true;
+            if(cmd[1] == colorList[j] || cmd[1] == 'A' ){
+              if(cmd[2] == '1')      ledState[stateIJ] = 1;
               else if(cmd[2] == 'T') ledState[stateIJ] = !ledState[stateIJ];
-              else                   ledState[stateIJ] = false;
+              else                   ledState[stateIJ] = 0;
             }
           } //END for(j)
         }
       } //END for(i)
-      setLeds();
+      updateShiftRegister();
     } //END if(?)
     cmd="";
   } //END if(cmd.length) 
 } //END loop()
 
-void setLeds(){
-  leds = B00000000;
-  for(int i=0; i < sizeof(rgb); i++){
-    if(ledState[i]) 
-      leds = leds | rgb[i];
-  } 
-  updateShiftRegister();  
-} //END setLeds()
-
 void updateShiftRegister(){
-   digitalWrite(latchPin, LOW);
-   shiftOut(dataPin, clockPin, LSBFIRST, leds);
-   digitalWrite(latchPin, HIGH);
+  digitalWrite(latchPin, LOW);
+  for(int i = numShiftsPins - 1; i >=  0; i--){
+    digitalWrite(clockPin, LOW);
+    digitalWrite(dataPin, ledState[i]);
+    digitalWrite(clockPin, HIGH);
+  }
+  digitalWrite(latchPin, HIGH);
+  
 } //END updateShiftRegister()
