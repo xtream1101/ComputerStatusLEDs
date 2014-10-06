@@ -1,5 +1,6 @@
 '''
-Created on Jun 28, 2014
+Created on: 2014-06-28
+Edited on:  2014-10-06
 
 @author: Eddy Hintze
 '''
@@ -29,7 +30,7 @@ class LedController(object):
             self.sendCommand('?')
             time.sleep(1) #delay to wait for arduino to respond
             self.model = self.conn.readline()
-
+            
             if self.model[:2] == "XN": #check to see if is a device we can use
                 self.isConn = True
                 #Get number of leds from model name

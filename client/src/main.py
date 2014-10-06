@@ -1,5 +1,6 @@
 '''
-Created on Jun 28, 2014
+Created on: 2014-06-28
+Edited on:  2014-10-06
 
 @author: Eddy Hintze
 '''
@@ -188,7 +189,8 @@ def saveSettings():
         for idx in xrange(ledCount):
             cmd = str(txtCommand[model][idx-1].text())
             delay = int(sbMin[model][idx-1].value())
-            ledList[idx] = {'cmd':cmd,'delay':delay}
+            active = cbEnable[model][idx-1].isChecked()
+            ledList[idx] = {'cmd':cmd,'delay':delay, 'active':active}
         jsonData[model] = ledList
         #write each model to its own config file
         with open('configs/'+model+'.json', 'w') as outfile:
@@ -206,6 +208,7 @@ def loadData():
             for idx in xrange(ledCount):
                 txtCommand[model][idx-1].setText(jsonData[str(idx)]['cmd'])
                 sbMin[model][idx-1].setValue(jsonData[str(idx)]['delay'])
+                cbEnable[model][idx-1].setChecked(jsonData[str(idx)]['active'])
         except IOError as e:
             pass
 
