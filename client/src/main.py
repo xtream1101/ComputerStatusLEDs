@@ -7,6 +7,7 @@ Edited on:  2014-10-06
 import sys
 import os
 import time
+import datetime
 import serial
 from serial.tools import list_ports
 import subprocess
@@ -50,16 +51,19 @@ class myCheckBox(QCheckBox):
         
     def runCommand(self):
         while True:
+            log("Running script for LED "+str(self.led))
             #get output from the command
             output = subprocess.check_output(self.command)
             #build command to send to the controller
             cmd = str(self.led) + '' + output
+            log("LED "+str(self.led)+" command: "+cmd)
             ctrl[self.model].sendCommand(cmd)
             time.sleep(self.min)
             
     @pyqtSlot(int)
     def checkedSlot(self,state):
         if state != 2:
+            log("Killed thread for LED "+str(self.led))
             #if checkbox gets unchecked, kill the thread.
             cmdThread[self.key].kill()
             del(cmdThread[self.key])
@@ -76,6 +80,7 @@ class myCheckBox(QCheckBox):
             #start thread         
             cmdThread[self.key] = KThread(target=self.runCommand);
             cmdThread[self.key].start()
+            log("Started thread for LED "+str(self.led))
         
 
             
@@ -203,7 +208,6 @@ def saveSettings():
         with open('configs/'+model+'.json', 'w') as outfile:
             json.dump(jsonData[model], outfile, sort_keys = True, indent = 4, ensure_ascii=False)
         
-
 def loadData():
     for model in ctrl:
         jsonData = {}
@@ -219,6 +223,12 @@ def loadData():
         except IOError as e:
             pass
 
+def log(data):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open("log.txt", "a") as logFile:
+        logFile.write(timestamp+' - ')
+        logFile.write(data)
+        logFile.write("\n")
            
 def quitApp():
     saveSettings()
@@ -239,9 +249,11 @@ def main():
     exitApp = app.exec_()
     #run this code on app exit
     quitApp()
+    log("Quit")
     sys.exit(exitApp)
 
 if __name__ == '__main__':
+    log("Started")
     main()
     
     
