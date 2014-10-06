@@ -53,13 +53,16 @@ class myCheckBox(QCheckBox):
         while True:
             log("Running script for LED "+str(self.led))
             #get output from the command
-            output = subprocess.check_output(self.command)
-            #build command to send to the controller
-            cmd = str(self.led) + '' + output
-            log("LED "+str(self.led)+" command: "+cmd)
-            ctrl[self.model].sendCommand(cmd)
+            output = subprocess.check_output(self.command).strip()
+            self.sendCmd(output)
             time.sleep(self.min)
             
+    def sendCmd(self, cmd):
+        #build command to send to the controller
+        cmd = str(self.led) + '' + cmd
+        log("LED "+str(self.led)+" command: "+cmd)
+        ctrl[self.model].sendCommand(cmd)
+        
     @pyqtSlot(int)
     def checkedSlot(self,state):
         if state != 2:
@@ -67,6 +70,8 @@ class myCheckBox(QCheckBox):
             #if checkbox gets unchecked, kill the thread.
             cmdThread[self.key].kill()
             del(cmdThread[self.key])
+            #Turn off LED
+            self.sendCmd("A0")
             #Enable edit fields
             txtCommand[self.model][self.led-1].setEnabled(True)
             sbMin[self.model][self.led-1].setEnabled(True)
@@ -81,7 +86,7 @@ class myCheckBox(QCheckBox):
             cmdThread[self.key] = KThread(target=self.runCommand);
             cmdThread[self.key].start()
             log("Started thread for LED "+str(self.led))
-        
+
 
             
 class Window(QWidget):
@@ -225,7 +230,7 @@ def loadData():
 
 def log(data):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open("log.txt", "a") as logFile:
+    with open("ledStatus.log", "a") as logFile:
         logFile.write(timestamp+' - ')
         logFile.write(data)
         logFile.write("\n")
