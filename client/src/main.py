@@ -63,9 +63,16 @@ class myCheckBox(QCheckBox):
             #if checkbox gets unchecked, kill the thread.
             cmdThread[self.key].kill()
             del(cmdThread[self.key])
+            #Enable edit fields
+            txtCommand[self.model][self.led-1].setEnabled(True)
+            sbMin[self.model][self.led-1].setEnabled(True)
         else:
+            #Get values
             self.command = str(txtCommand[self.model][self.led-1].text())
             self.min = int(sbMin[self.model][self.led-1].value())
+            #Disable edit fields
+            txtCommand[self.model][self.led-1].setEnabled(False)
+            sbMin[self.model][self.led-1].setEnabled(False)
             #start thread         
             cmdThread[self.key] = KThread(target=self.runCommand);
             cmdThread[self.key].start()
